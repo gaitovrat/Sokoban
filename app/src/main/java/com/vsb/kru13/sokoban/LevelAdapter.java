@@ -63,7 +63,7 @@ public class LevelAdapter extends BaseAdapter {
 
         TextView text = convertView.findViewById(R.id.list_item_text);
         String displayText = String.format("Level %d", position);
-        text.setText("level " + displayText);
+        text.setText(displayText);
 
         return convertView;
     }
