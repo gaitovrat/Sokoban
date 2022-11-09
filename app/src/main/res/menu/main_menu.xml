@@ -3,8 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/reload"
-        android:icon="@android:drawable/ic_menu_revert"
-        android:title="@string/menu_reload_name"
-        app:showAsAction="ifRoom"/>
+        android:id="@+id/reload_item"
+        android:title="@string/menu_reload_name" />
+    <item
+        android:id="@+id/main_item"
+        android:title="@string/menu_item_main" />
 </menu>

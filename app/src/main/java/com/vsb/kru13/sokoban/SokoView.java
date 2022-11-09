@@ -24,6 +24,8 @@ public class SokoView extends View{
     private int width;
     private int height;
 
+    private int xCount;
+
     private final int[] template = {
             1,1,1,1,1,1,1,1,1,0,
             1,0,0,0,0,0,0,0,1,0,
@@ -37,7 +39,7 @@ public class SokoView extends View{
             0,0,0,0,0,0,0,0,0,0
     };
 
-    private int[] level = new int[template.length];
+    private final int[] level = new int[template.length];
 
     public SokoView(Context context) {
         super(context);
@@ -57,12 +59,12 @@ public class SokoView extends View{
     void init(Context context) {
         bmp = new Bitmap[6];
 
-        bmp[0] = BitmapFactory.decodeResource(getResources(), R.drawable.empty);
-        bmp[1] = BitmapFactory.decodeResource(getResources(), R.drawable.wall);
-        bmp[2] = BitmapFactory.decodeResource(getResources(), R.drawable.box);
-        bmp[3] = BitmapFactory.decodeResource(getResources(), R.drawable.goal);
-        bmp[4] = BitmapFactory.decodeResource(getResources(), R.drawable.hero);
-        bmp[5] = BitmapFactory.decodeResource(getResources(), R.drawable.boxok);
+        bmp[Sprite.FLOOR.getNumber()] = BitmapFactory.decodeResource(getResources(), R.drawable.empty);
+        bmp[Sprite.WALL.getNumber()] = BitmapFactory.decodeResource(getResources(), R.drawable.wall);
+        bmp[Sprite.BOX.getNumber()] = BitmapFactory.decodeResource(getResources(), R.drawable.box);
+        bmp[Sprite.FLOOR_X.getNumber()] = BitmapFactory.decodeResource(getResources(), R.drawable.goal);
+        bmp[Sprite.PLAYER.getNumber()] = BitmapFactory.decodeResource(getResources(), R.drawable.hero);
+        bmp[Sprite.GREEN_BOX.getNumber()] = BitmapFactory.decodeResource(getResources(), R.drawable.boxok);
 
         resetLevel();
     }
@@ -126,57 +128,59 @@ public class SokoView extends View{
         return y * 10 + x;
     }
 
-    private void showText(String text) {
-        Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
-    }
-
     private void move(Direction direction) {
         switch (direction) {
             case UP:
                 if (posY > 0) {
                     moveUp();
                 }
-                return;
+                break;
             case DOWN:
                 if (posY < ly) {
                     moveDown();
                 }
-                return;
+                break;
             case LEFT:
                 if (posX > 0) {
                     moveLeft();
                 }
-                return;
+                break;
             case RIGHT:
                 if (posX < lx) {
                     moveRight();
                 }
-                return;
+                break;
             default:
+                break;
         }
+
+        checkWin();
     }
 
     private void moveUp() {
         int objectNextPosition = calculatePosition(posX, posY - 1);
         int currentPosition = calculatePosition(posX, posY);
 
-        if (level[objectNextPosition] == 1 || level[objectNextPosition] == 5)
+        if (level[objectNextPosition] == Sprite.WALL.getNumber())
             return;
 
-        if (level[objectNextPosition] == 2) {
+        if (level[objectNextPosition] == Sprite.BOX.getNumber() ||
+            level[objectNextPosition] == Sprite.GREEN_BOX.getNumber()) {
             if ((posY - 2) < 0) {
                 return;
             }
             int objectAfterBox = calculatePosition(posX, posY - 2);
-            if (level[objectAfterBox] == 1 || level[objectAfterBox] == 5) {
+            if (level[objectAfterBox] == Sprite.WALL.getNumber()) {
                 return;
             }
 
-            level[objectAfterBox] = 5;
+            level[objectAfterBox] = template[objectAfterBox] == Sprite.FLOOR_X.getNumber() ?
+                    Sprite.GREEN_BOX.getNumber() : Sprite.BOX.getNumber();
         }
 
-        level[currentPosition] = template[currentPosition] == 3 ? 3 : 0;
-        level[objectNextPosition] = 4;
+        level[currentPosition] = template[currentPosition] == Sprite.FLOOR_X.getNumber() ?
+                Sprite.FLOOR_X.getNumber() : Sprite.FLOOR.getNumber();
+        level[objectNextPosition] = Sprite.PLAYER.getNumber();
 
         invalidate();
 
@@ -187,23 +191,26 @@ public class SokoView extends View{
         int objectNextPosition = calculatePosition(posX, posY + 1);
         int currentPosition = calculatePosition(posX, posY);
 
-        if (level[objectNextPosition] == 1 || level[objectNextPosition] == 5)
+        if (level[objectNextPosition] == Sprite.WALL.getNumber())
             return;
 
-        if (level[objectNextPosition] == 2) {
+        if (level[objectNextPosition] == Sprite.BOX.getNumber() ||
+            level[objectNextPosition] == Sprite.GREEN_BOX.getNumber()) {
             if ((posY + 2) < 0) {
                 return;
             }
             int objectAfterBox = calculatePosition(posX, posY + 2);
-            if (level[objectAfterBox] == 1 || level[objectAfterBox] == 5) {
+            if (level[objectAfterBox] == Sprite.WALL.getNumber()) {
                 return;
             }
 
-            level[objectAfterBox] = 5;
+            level[objectAfterBox] = template[objectAfterBox] == Sprite.FLOOR_X.getNumber() ?
+                    Sprite.GREEN_BOX.getNumber() : Sprite.BOX.getNumber();;
         }
 
-        level[currentPosition] = template[currentPosition] == 3 ? 3 : 0;
-        level[objectNextPosition] = 4;
+        level[currentPosition] = template[currentPosition] == Sprite.FLOOR_X.getNumber() ?
+                Sprite.FLOOR_X.getNumber() : Sprite.FLOOR.getNumber();
+        level[objectNextPosition] = Sprite.PLAYER.getNumber();
 
         invalidate();
 
@@ -214,23 +221,26 @@ public class SokoView extends View{
         int objectNextPosition = calculatePosition(posX + 1, posY);
         int currentPosition = calculatePosition(posX, posY);
 
-        if (level[objectNextPosition] == 1 || level[objectNextPosition] == 5)
+        if (level[objectNextPosition] == Sprite.WALL.getNumber())
             return;
 
-        if (level[objectNextPosition] == 2) {
+        if (level[objectNextPosition] == Sprite.BOX.getNumber() ||
+            level[objectNextPosition] == Sprite.GREEN_BOX.getNumber()) {
             if ((posX + 1) < 0) {
                 return;
             }
             int objectAfterBox = calculatePosition(posX + 2, posY);
-            if (level[objectAfterBox] == 1 || level[objectAfterBox] == 5) {
+            if (level[objectAfterBox] == Sprite.WALL.getNumber()) {
                 return;
             }
 
-            level[objectAfterBox] = 5;
+            level[objectAfterBox] = template[objectAfterBox] == Sprite.FLOOR_X.getNumber() ?
+                    Sprite.GREEN_BOX.getNumber() : Sprite.BOX.getNumber();
         }
 
-        level[currentPosition] = template[currentPosition] == 3 ? 3 : 0;
-        level[objectNextPosition] = 4;
+        level[currentPosition] = template[currentPosition] == Sprite.FLOOR_X.getNumber() ?
+                Sprite.FLOOR_X.getNumber() : Sprite.FLOOR.getNumber();
+        level[objectNextPosition] = Sprite.PLAYER.getNumber();
 
         invalidate();
 
@@ -241,24 +251,27 @@ public class SokoView extends View{
         int objectNextPosition = calculatePosition(posX - 1, posY);
         int currentPosition = calculatePosition(posX, posY);
 
-        if (level[objectNextPosition] == 1 || level[objectNextPosition] == 5) {
+        if (level[objectNextPosition] == Sprite.WALL.getNumber()) {
             return;
         }
 
-        if (level[objectNextPosition] == 2) {
+        if (level[objectNextPosition] == Sprite.BOX.getNumber() ||
+            level[objectNextPosition] == Sprite.GREEN_BOX.getNumber()) {
             if ((posX - 1) < 0) {
                 return;
             }
             int objectAfterBox = calculatePosition(posX - 2, posY);
-            if (level[objectAfterBox] == 1 || level[objectAfterBox] == 5) {
+            if (level[objectAfterBox] == Sprite.WALL.getNumber()) {
                 return;
             }
 
-            level[objectAfterBox] = 5;
+            level[objectAfterBox] = template[objectAfterBox] == Sprite.FLOOR_X.getNumber() ?
+                    Sprite.GREEN_BOX.getNumber() : Sprite.BOX.getNumber();;
         }
 
-        level[currentPosition] = template[currentPosition] == 3 ? 3 : 0;
-        level[objectNextPosition] = 4;
+        level[currentPosition] = template[currentPosition] == Sprite.FLOOR_X.getNumber() ?
+                Sprite.FLOOR_X.getNumber() : Sprite.FLOOR.getNumber();
+        level[objectNextPosition] = Sprite.PLAYER.getNumber();
 
         invalidate();
 
@@ -275,13 +288,40 @@ public class SokoView extends View{
 
         for (int y = 0; y < ly; y++) {
             for (int x = 0; x < lx; x++) {
-                if (level[calculatePosition(x, y)] == 4) {
+                if (level[calculatePosition(x, y)] == Sprite.PLAYER.getNumber()) {
                     posX = x;
                     posY = y;
 
                     return;
                 }
             }
+        }
+    }
+
+    public void setLevel(int[] level) {
+        System.arraycopy(level, 0, template, 0, level.length);
+
+        xCount = 0;
+        for (int object : level) {
+            if (object == Sprite.FLOOR_X.getNumber()) {
+                xCount++;
+            }
+        }
+
+        resetLevel();
+        invalidate();
+    }
+
+    private void checkWin() {
+        int greenBoxCount = 0;
+        for (int object : level) {
+            if (object == Sprite.GREEN_BOX.getNumber()) {
+                greenBoxCount++;
+            }
+        }
+
+        if (greenBoxCount == xCount) {
+            ((CanvasActivity) getContext()).win();
         }
     }
 }

@@ -1,38 +1,60 @@
 package com.vsb.kru13.sokoban;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.ListView;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
-    private SokoView sokoView;
+    private ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        this.sokoView = findViewById(R.id.sokoView);
+        listView = findViewById(R.id.level_list);
+        listView.setAdapter(new LevelAdapter(getAssets(), this));
+
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Level level = (Level) listView.getItemAtPosition(position);
+            Intent intent = new Intent(this, CanvasActivity.class);
+            intent.putExtra("level", level.getRaw());
+            intent.putExtra("position", position);
+            startActivityForResult(intent, 0);
+        });
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-        return true;
-    }
+        if (requestCode == 0) {
+            assert data != null;
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.reload) {
-            this.sokoView.reload();
-            return true;
-        } else {
-            return super.onOptionsItemSelected(item);
+            int position = data.getIntExtra("position", 0);
+
+            if ((position + 1) >= listView.getAdapter().getCount()) {
+                return;
+            }
+
+            Level level = (Level) listView.getItemAtPosition(position + 1);
+            Intent intent = new Intent(this, CanvasActivity.class);
+
+            intent.putExtra("level", level.getRaw());
+            intent.putExtra("position", position + 1);
+            startActivityForResult(intent, 0);
         }
     }
 }
